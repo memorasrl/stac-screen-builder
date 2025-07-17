@@ -69,6 +69,10 @@ abstract class BaseComponent implements SerializableInterface, BuildableInterfac
      * @return self For method chaining
      */
     public function setProperty(string $key, $value): self {
+        if ($value === null || $value === '') {
+            return $this;
+        }
+        
         if (strpos($key, '.') !== false) {
             $keys = explode('.', $key);
             $current = &$this->properties;
@@ -82,7 +86,12 @@ abstract class BaseComponent implements SerializableInterface, BuildableInterfac
             
             $current = $value;
         } else {
-            $this->properties[$key] = $value;
+            // If the property already exists and both old and new values are arrays, merge them
+            if (isset($this->properties[$key]) && is_array($this->properties[$key]) && is_array($value)) {
+                $this->properties[$key] = array_merge($this->properties[$key], $value);
+            } else {
+                $this->properties[$key] = $value;
+            }
         }
         
         return $this;

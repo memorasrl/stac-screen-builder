@@ -12,10 +12,6 @@ require_once __DIR__ . '/BaseComponent.php';
  * - Color and decoration
  * - Alignment and overflow handling
  * - Text spans and rich text
- * 
- * @package StacScreenBuilder\Components
- * @author Your Name
- * @version 1.0.0
  */
 class TextComponent extends BaseComponent {
     /**
@@ -58,7 +54,6 @@ class TextComponent extends BaseComponent {
     /**
      * Constructor
      * 
-     * @param string $id Component ID
      * @param string $text Text content
      */
     public function __construct(string $text = '') {
@@ -81,7 +76,7 @@ class TextComponent extends BaseComponent {
      * @param mixed $value Style property value
      * @return self For method chaining
      */
-    private function setStyle(string $key, $value): self {
+    public function setStyle(string $key, $value): self {
         $this->setProperty("style.{$key}", $value);
         return $this;
     }
@@ -93,7 +88,7 @@ class TextComponent extends BaseComponent {
      * @param mixed $default Default value if property not found
      * @return mixed Style property value or default
      */
-    private function getStyle(string $key, $default = null) {
+    public function getStyle(string $key, $default = null) {
         return $this->getProperty("style.{$key}", $default);
     }
     
@@ -150,9 +145,9 @@ class TextComponent extends BaseComponent {
     }
 
     /**
-     * Set font size
+     * Set font weight
      * 
-     * @param float $size Font size in logical pixels
+     * @param float $weight Font size in logical pixels
      * @return self For method chaining
      */
     public function setFontWeight(string $weight): self {
@@ -161,6 +156,43 @@ class TextComponent extends BaseComponent {
         }
         
         $this->setStyle('fontWeight', self::FONT_WEIGHTS[$weight]);
+        return $this;
+    }
+
+    /**
+     * Set font size
+     * 
+     * @param int $size Font size in logical pixels
+     * @return self For method chaining
+     * @throws InvalidArgumentException If size is not a positive number
+     */
+    public function setFontSize(int $size): self {
+        if ($size <= 0) {
+            throw new InvalidArgumentException("Font size must be a positive number");
+        }
+        
+        $this->setStyle('fontSize', $size);
+        return $this;
+    }
+
+    /**
+     * Set typography properties
+     * 
+     * @param array $typo Typography properties array
+     * @return self For method chaining
+     */
+    public function setTypo(array $typo): self {
+        if (!isset($typo['fontSize']) || !is_numeric($typo['fontSize']) || $typo['fontSize'] <= 0) {
+            throw new InvalidArgumentException("Font size must be a positive number");
+        }
+        
+        if (!isset($typo['fontWeight']) || !array_key_exists($typo['fontWeight'], self::FONT_WEIGHTS)) {
+            throw new InvalidArgumentException("Invalid font weight: {$typo['fontWeight']}");
+        }
+        
+        $this->setStyle('fontSize', $typo['fontSize']);
+        $this->setStyle('fontWeight', self::FONT_WEIGHTS[$typo['fontWeight']]);
+        
         return $this;
     }
     

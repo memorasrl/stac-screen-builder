@@ -50,39 +50,38 @@ class StacScreenBuilder implements BuildableInterface, SerializableInterface {
         return $this->rootComponent;
     }
     
-    /**
-     * Create a container component
-     * 
-     * @param string $type Container type
-     * @param array $config Component configuration
-     * @return ContainerComponent Created container
-     */
-    public function createContainer(string $type = 'column', array $config = []): ContainerComponent {
-        return $this->factory->createContainer($type, $config);
-    }
+
     
     /**
-     * Create a text component
+     * Magic method to dynamically call factory methods
      * 
-     * @param string $text Text content
-     * @param array $config Component configuration
-     * @return TextComponent Created text component
-     */
-    public function createText(string $text = '', array $config = []): TextComponent {
-        return $this->factory->createText($text, $config);
-    }
-    
-    /**
-     * Create a button component
+     * This allows calling methods like `createRow()`, etc. directly on the builder using the
+     * short names like `column()`, `row()`, `icon()`, etc.
      * 
-     * @param string $text Button text
-     * @param string $onPressed Callback function
-     * @param string $type Button type
-     * @param array $config Component configuration
-     * @return ButtonComponent Created button component
+     * @param string $method Method name (e.g., 'row', 'expanded')
+     * @param array $arguments Method arguments
+     * @return mixed The result from the factory method
+     * @throws BadMethodCallException If the method doesn't exist in the factory
      */
-    public function createButton(string $text = '', string $onPressed = '', string $type = 'elevated', array $config = []): ButtonComponent {
-        return $this->factory->createButton($text, $onPressed, $type, $config);
+    public function __call(string $method, array $arguments) {
+        
+        // Check if method starts with 'create'
+        if (substr($method, 0, 6) !== 'create') {
+            $createMethod = 'create' . ucfirst($method);
+            
+            // Try instance method with 'create' prefix
+            if (method_exists($this->factory, $createMethod)) {
+                return call_user_func_array([$this->factory, $createMethod], $arguments);
+            }
+            
+            // Try static method with 'create' prefix
+            if (method_exists(ComponentFactory::class, $createMethod)) {
+                return call_user_func_array([ComponentFactory::class, $createMethod], $arguments);
+            }
+        }
+        
+        // If method doesn't exist, throw an exception
+        throw new BadMethodCallException("Method '{$method}' does not exist in StacScreenBuilder or ComponentFactory");
     }
     
     /**
